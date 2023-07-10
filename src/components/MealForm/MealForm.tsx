@@ -4,22 +4,22 @@ import {ApiMeal} from "../../types";
 import ButtonSpinner from "../Spinner/ButtonSpinner/ButtonSpinner";
 import {MEAL_TYPE} from "../../constant";
 import axiosApi from "../../axiosApi";
+
 interface Props {
     onSubmit: (meal: ApiMeal) => void;
     meal?: ApiMeal;
     updating: boolean;
     creating: boolean;
 }
-const initialState: ApiMeal = {
-    id:'',
-    mealTime: '',
-    calories: 0,
-    description: ''
-}
-const MealForm:React.FC<Props> = ({onSubmit, updating}) => {
+const MealForm:React.FC<Props> = ({onSubmit, updating, creating}) => {
 
     const {id} = useParams();
-    const [newMeal, setNewMeal] = useState<ApiMeal>(initialState);
+    const [newMeal, setNewMeal] = useState<ApiMeal>({
+        id:'',
+        mealTime: '',
+        description: '',
+        calories: 0
+    });
 
     const fetchOneMeal = useCallback(async () => {
         const mealResponse = await axiosApi.get<ApiMeal>('/meals/' + id + '.json');
@@ -27,12 +27,16 @@ const MealForm:React.FC<Props> = ({onSubmit, updating}) => {
     }, [id]);
 
     useEffect(() => {
-        void fetchOneMeal();
+        if(id){
+            void fetchOneMeal();
+        }
     }, [fetchOneMeal, id]);
     const onMealsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const {name, value} = e.target;
-
-        const data = name === "calorie"? parseInt(value) : value;
+        if(name === "calories"){
+            parseInt(value);
+        }
+        const data = value;
         setNewMeal(prev => ({...prev,
             [name]: data,
         }));
@@ -81,16 +85,16 @@ const MealForm:React.FC<Props> = ({onSubmit, updating}) => {
                     />
                 </div>
                 <div className="form-group">
-                    <label htmlFor="calorie">Food</label>
+                    <label htmlFor="calories">Food</label>
                     <input
-                        id="calorie" name="calories" type="number"
+                        id="calories" name="calories" type="number"
                         className="form-control"
-                        value={newMeal.calories}
+                        value={ newMeal.calories}
                         onChange={onMealsChange}
                     />
                 </div>
                 <button type="submit" className="btn btn-primary mt-2"
-                        disabled={updating || newMeal.calories === 0 || newMeal.mealTime === '' || newMeal.description === ''}
+                        disabled={updating || creating || newMeal.calories === 0 || newMeal.mealTime === '' || newMeal.description === ''}
                 >
                     {updating && <ButtonSpinner/>}
                     {id ? 'Edit' : 'Create'}
