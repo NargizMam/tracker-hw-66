@@ -9,3 +9,6 @@ export interface ApiMeal extends Meal{
 export interface ApiMealsList {
     [id: string]: Meal;
 }
+
+
+
